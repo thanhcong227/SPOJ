@@ -1,18 +1,17 @@
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Stack;
 
-public class Main {
+public class StopCity {
 
     static class Reader {
         final private int BUFFER_SIZE = 1 << 16;
-        private DataInputStream din;
-        private byte[] buffer;
+        private final DataInputStream din;
+        private final byte[] buffer;
         private int bufferPointer, bytesRead;
 
         public Reader() {
@@ -57,15 +56,13 @@ public class Main {
 
     static int[] vis1, vis2, vk;
     static Stack<Integer> stack;
-    static int[][] a;
     static int[] pot;
-    static int v[][];
+    static int[][] v;
     static int[] cnt;
     static int V;
 
     public static void bfs(int x, int b, int zaf) {
         Deque<Integer> qi = new LinkedList<>();
-        int ind = 0;
         qi.push(x);
         pot[x] = -1;
         vis2[x] = zaf;
@@ -89,8 +86,8 @@ public class Main {
                 }
             }
         }
-        for (int i = 0; i < pat.size(); i++) {
-            stack.push(pat.get(i));
+        for (Integer integer : pat) {
+            stack.push(integer);
         }
     }
 
