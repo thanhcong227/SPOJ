@@ -1,152 +1,76 @@
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Stack;
+import java.io.*;
 
 public class Main {
+    static int[][][] space;
+    static int X, Y, Z;
 
-    static class Reader {
-        final private int BUFFER_SIZE = 1 << 16;
-        private DataInputStream din;
-        private byte[] buffer;
-        private int bufferPointer, bytesRead;
-
-        public Reader() {
-            din = new DataInputStream(System.in);
-            buffer = new byte[BUFFER_SIZE];
-            bufferPointer = bytesRead = 0;
-        }
-
-        public String readLine() throws IOException {
-            byte[] buf = new byte[1024];
-            int cnt = 0, c;
-            while ((c = read()) != -1) {
-                if (c == '\n') break;
-                buf[cnt++] = (byte) c;
+    public static void main(String[] args) throws Exception {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        BufferedOutputStream bos = new BufferedOutputStream(System.out);
+        int scenarios = Integer.parseInt(br.readLine());
+        while (scenarios-- > 0) {
+            String[] line = br.readLine().split(" ");
+            int x1 = Integer.parseInt(line[0]);
+            int y1 = Integer.parseInt(line[1]);
+            int z1 = Integer.parseInt(line[2]);
+            int x2 = Integer.parseInt(line[3]);
+            int y2 = Integer.parseInt(line[4]);
+            int z2 = Integer.parseInt(line[5]);
+            X = x2 - x1 + 1;
+            Y = y2 - y1 + 1;
+            Z = z2 - z1 + 1;
+            space = new int[X + 1][Y + 1][Z + 1];
+            int q = Integer.parseInt(br.readLine());
+            for (int i = 0; i < q; i++) {
+                line = br.readLine().split(" ");
+                int x = Integer.parseInt(line[1]);
+                int y = Integer.parseInt(line[2]);
+                int z = Integer.parseInt(line[3]);
+                if (line[0].equals("U")) {
+                    int r = Integer.parseInt(line[4]);
+                    update(x - x1, y - y1, z - z1, r);
+                } else {
+                    if (space[x - x1][y - y1][z - z1] == 1)
+                        bos.write("Friend\n".getBytes());
+                    else
+                        bos.write("Enemy\n".getBytes());
+                }
+                bos.flush();
             }
-            return new String(buf, 0, cnt);
         }
-
-        public int nextInt() throws IOException {
-            int ret = 0;
-            byte c = read();
-            while (c <= ' ') c = read();
-            boolean neg = (c == '-');
-            if (neg) c = read();
-            do {
-                ret = ret * 10 + c - '0';
-            } while ((c = read()) >= '0' && c <= '9');
-            if (neg) return -ret;
-            return ret;
-        }
-
-        private void fillBuffer() throws IOException {
-            bytesRead = din.read(buffer, bufferPointer = 0, BUFFER_SIZE);
-            if (bytesRead == -1) buffer[0] = -1;
-        }
-
-        private byte read() throws IOException {
-            if (bufferPointer == bytesRead) fillBuffer();
-            return buffer[bufferPointer++];
-        }
+        bos.flush();
     }
 
-    static int[] vis1, vis2, vk;
-    static Stack<Integer> stack;
-    static int[][] a;
-    static int[] pot;
-    static int v[][];
-    static int[] cnt;
-    static int V;
+    public static void update(int x, int y, int z, int r) {
+        int xa = Math.max(1, x - r);
+        int xb = x + r + 1;
+        int ya = Math.max(1, y - r);
+        int yb = y + r + 1;
+        int za = Math.max(1, z - r);
+        int zb = z + r + 1;
+        space[xa][ya][za]++;
+        space[xa][ya][zb]--;
+        space[xa][yb][za]--;
+        space[xa][yb][zb]++;
+        space[xb][ya][za]--;
+        space[xb][ya][zb]++;
+        space[xb][yb][za]++;
+        space[xb][yb][zb]--;
 
-    public static void bfs(int x, int b, int zaf) {
-        Deque<Integer> qi = new LinkedList<>();
-        int ind = 0;
-        qi.push(x);
-        pot[x] = -1;
-        vis2[x] = zaf;
-        LinkedList<Integer> pat = new LinkedList<>();
-        while (!qi.isEmpty()) {
-            int topi = qi.poll();
-            if (vis1[topi] == b && topi != x) {
-                int y = topi;
-                while (y != x) {
-                    pat.add(y);
-                    vis1[pot[y]] = b;
-                    y = pot[y];
-                }
-                break;
-            }
-            for (int i = 0; i < cnt[topi]; i++) {
-                if (vis2[v[topi][i]] != zaf && (vis1[v[topi][i]] != b || vis1[topi] != b)) {
-                    vis2[v[topi][i]] = zaf;
-                    qi.push(v[topi][i]);
-                    pot[v[topi][i]] = topi;
-                }
-            }
-        }
-        for (int i = 0; i < pat.size(); i++) {
-            stack.push(pat.get(i));
-        }
-    }
-
-    public static void main(String[] args) throws IOException {
-        Reader sc = new Reader();
-        BufferedOutputStream out = new BufferedOutputStream(System.out);
-        V = sc.nextInt();
-        int a, b;
-        vk = new int[V];
-        cnt = new int[V];
-        v = new int[V][V];
-        vis1 = new int[V];
-        vis2 = new int[V];
-        pot = new int[V];
-        stack = new Stack<>();
-        for (int i = 0; i < V; i++) {
-            cnt[i] = 0;
-        }
-        while (true) {
-            a = sc.nextInt();
-            b = sc.nextInt();
-            if (a == -1 && b == -1) {
-                break;
-            }
-            if (a == b) {
-                continue;
-            }
-            v[a][cnt[a]++] = b;
-            v[b][cnt[b]++] = a;
-        }
-        int x, y;
-        x = sc.nextInt();
-        y = sc.nextInt();
-        vis1[y] = 1;
-        stack.push(x);
-        int bro = 0;
-        while (!stack.isEmpty()) {
-            bro++;
-            int g = stack.peek();
-            stack.pop();
-            bfs(g, 1, bro);
-        }
-        int count = 0;
-        for (int i = 0; i < V; i++) {
-            if (vis1[i] == 1) {
-                vk[count] = i;
-                count++;
-            }
-        }
-        Arrays.sort(vk, 0, count);
-        for (int i = 0; i < count; i++) {
-            if (i > 0) {
-                out.write((" ").getBytes());
-            }
-            out.write((vk[i] + "").getBytes());
-        }
-        out.flush();
     }
 }
+//    public static void update(int x, int y, int z) {
+//        for (int i = x; i <= X; i = i + (i & -i))
+//            for (int j = y; j <= Y; j = j + (j & -j))
+//                for (int k = z; k <= Z; k = k + (k & -k))
+//                    space[i][j][k] = 1 - space[i][j][k];
+//    }
+//    public static boolean get(int x, int y, int z) {
+//        int res = 0;
+//        for (int i = x; i > 0; i = i - (i & -i))
+//            for (int j = y; j > 0; j = j - (j & -j))
+//                for (int k = z; k > 0; k = k - (k & -k))
+//                    res += space[i][j][k];
+//        return res != 0;
+//}
+
